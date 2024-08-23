@@ -86,3 +86,11 @@ class HTPWorker():
                 self.lastping = now
                 self.pingspeeds.append(self.pingspeednow)
                 print("Ping Speed: {}".format(self.pingspeednow))
+            if prefix == "EPG" and self.connected:
+                self.pingingnow == False
+                now = time.time()
+                self.pingspeednow = now - self.livepingtime
+                self.livepingtime = None
+                self.lastping = now
+                self.pingspeeds.append(self.pingspeednow)
+                print("Ping Speed: {}".format(self.pingspeednow))
