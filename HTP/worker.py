@@ -1,13 +1,15 @@
 import time # used for measuring ping speed
 
 class HTPWorker():
-    def __init__(self, mycall, yourcall, connector, accepting=True):
+    def __init__(self, mycall, yourcall, connector, accepting=True, pingdelay=30, timeout=60):
         # Load the main paramaters into variables
         self.mycall = str(mycall)
         self.yourcall = yourcall # this can be left blank, if so the station will pair with any other stations that want to pair with it
         self.connector = connector
         self.accepting = accepting # Remembers if the program is accepting new connections
         self.maxconnections = 1 # I hope to add support for multiple connections later
+        self.pingdelay = float(pingdelay)
+        self.timeout = timeout # used for timeouts
 
         # initilize variables to be used later
         self.connected = False
@@ -21,6 +23,9 @@ class HTPWorker():
         self.tryingtoconnect = True
         self.connector.transmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
     def ping(self):
+        if self.pingingnow:
+            return # we don't want to run the function if a ping is already in progress
+
         # this function is responsible for starting pinging, but not responding to a ping
         self.connector.transmit("PNG {} {}".format(self.mycall, self.yourcall))
         self.pingingnow = True
@@ -30,9 +35,8 @@ class HTPWorker():
         data = self.connector.recieve()
         
         # this part of the function runs scheduled tasks
-        if time.time() - self.lastping == 30.0:
+        if time.time() - self.lastping >= float(self.pingdelay) and self.lastping > 0: # when this function is run the first few times it is almost inevitable that lastping will be low
             self.ping()
-
 
         if data == None: # if nothing was recieved, then there is no sense in keeping this function running any longer
             return
@@ -79,15 +83,18 @@ class HTPWorker():
             if prefix == "POG" and self.connected:
                 print("I'm {} recieving a POG, responding by ending the ping".format(self.mycall))
                 self.connector.transmit("EPG {} {}".format(self.mycall, self.yourcall))
-                self.pingingnow == False
+                self.pingingnow = False
                 now = time.time()
-                self.pingspeednow = now - self.livepingtime
+                try:
+                    self.pingspeednow = now - self.livepingtime
+                except:
+                    print("NOT FATAL ERROR! ping speed could not be calculated")
                 self.livepingtime = None
                 self.lastping = now
                 self.pingspeeds.append(self.pingspeednow)
                 print("Ping Speed: {}".format(self.pingspeednow))
             if prefix == "EPG" and self.connected:
-                self.pingingnow == False
+                self.pingingnow = False
                 now = time.time()
                 self.pingspeednow = now - self.livepingtime
                 self.livepingtime = None

@@ -31,8 +31,8 @@ if __name__ == "__main__":
     connector2 = Connector()
 
     # the workers have the call signs, test1 and 2
-    worker1 = worker.HTPWorker('TEST1', 'TEST2', connector1)
-    worker2 = worker.HTPWorker('TEST2', 'TEST1', connector2)
+    worker1 = worker.HTPWorker('TEST1', 'TEST2', connector1, pingdelay=3)
+    worker2 = worker.HTPWorker('TEST2', 'TEST1', connector2, pingdelay=3)
 
     worker1.initiate_connection()
     # Debugging stuff
