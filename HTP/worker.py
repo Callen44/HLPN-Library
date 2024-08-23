@@ -13,6 +13,9 @@ class HTPWorker():
     def initiate_connection(self):
         self.tryingtoconnect = True
         self.connector.transmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
+    def ping(self):
+        # this function is responsible for managing all pinging that goes on
+        pass
     def update(self):
         # this function recieves data and then processes it
         data = self.connector.recieve()
@@ -48,4 +51,6 @@ class HTPWorker():
             self.tryingtoconnect = False
             self.connected = True
             self.accepting = False
-            print("I'm {}, I've just revieved CMA for a connection with {}".format(self.mycall, self.yourcall))
+            print("I'm {}, I've just revieved CMA for a connection with {}\n\nCommencing {}'s Pinging".format(self.mycall, self.yourcall, self.mycall))
+
+            self.ping() # begin the pinging process
