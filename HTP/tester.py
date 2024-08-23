@@ -36,6 +36,6 @@ if __name__ == "__main__":
 
     worker1.initiate_connection()
     # Debugging stuff
-    for x in range(1,20):
+    while True:
         worker2.update()
         worker1.update()
