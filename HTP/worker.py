@@ -11,6 +11,7 @@ class HTPWorker():
         self.connected = False
         self.tryingtoconnect = False
     def initiate_connection(self):
+        self.tryingtoconnect = True
         self.connector.transmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
     def update(self):
         # this function recieves data and then processes it
@@ -29,6 +30,22 @@ class HTPWorker():
             # check if this is allowed, and if we are the station he is trying to connect
             if not self.connected and self.accepting and not self.tryingtoconnect and args[2] == self.mycall:
                 # let's connect!
-                print("I'm {} Connecting to {}".format(self.mycall, args[1]))
+                print("I'm {} Accepting a connection to {}".format(self.mycall, args[1]))
                 self.tryingtoconnect = True
-                self.connector.transmit("")
+                self.connector.transmit("CAC {} {}".format(self.mycall, self.yourcall))
+        if prefix == "CAC" and self.tryingtoconnect and args[2] == self.mycall:
+            # the other station just accepted my request
+            print("I'm {} Confirming a connection with {}".format(self.mycall, self.yourcall))
+            
+            # we have now connected, so we should stop accepting other connections, and make note of the other changes
+            self.tryingtoconnect = False
+            self.connected = True
+            self.accepting = False
+
+            self.connector.transmit("CMA {} {}".format(self.mycall, self.yourcall))
+        if prefix == "CMA" and self.tryingtoconnect:
+            # we have now connected, so we should stop accepting other connections, and make note of the other changes
+            self.tryingtoconnect = False
+            self.connected = True
+            self.accepting = False
+            print("I'm {}, I've just revieved CMA for a connection with {}".format(self.mycall, self.yourcall))

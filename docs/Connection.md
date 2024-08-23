@@ -45,7 +45,7 @@ CMA [Transmitting station's call sign] [Recieving station's call sign]
 the 2 stations are now connected, but we need to maintain the connection, otherwise the station's connection may be faulty without the operator's knowledge, due to changing conditions, or other factors that may harm the signal without the operator or computer's knowledge.
 
 ## Pinging
-Pinging is not optional and connected stations must respond to ping requests or the other station my be confused and end the connection. To prevent packet collision the station who sent the initial CON request is responsible for managing pinging, and must ping at least every minute
+Pinging is not optional and connected stations must respond to ping requests or the other station my be confused and end the connection. To prevent packet collision the station who recieves the CMA (the station which did not initially send the CON request) response is generally responsible for managing pinging (we'll worry about that later), and must ping at least every minute
 
 To ensure that both stations are able to take full advantage of the ping system, the signal is bounced twice. The first station sends the initial ping, then the seccond station sends a pong, the first station then ends the ping with a third message.
 
