@@ -19,17 +19,22 @@ class HTPWorker():
         self.pingspeeds = list()
         self.livepingtime = None # this stores the time that is used in calculating the ping speed
         self.lastping = int() # this stores the last time that a ping was successfully made, prevents from having too many pings.
+        self.lastmsg = str() # this records the last message that was sent, this way if it needs to be resent there is an easy way to do so.
     def initiate_connection(self):
         self.tryingtoconnect = True
-        self.connector.transmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
+        self.organizedtransmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
     def ping(self):
         if self.pingingnow:
             return # we don't want to run the function if a ping is already in progress
 
         # this function is responsible for starting pinging, but not responding to a ping
-        self.connector.transmit("PNG {} {}".format(self.mycall, self.yourcall))
+        self.organizedtransmit("PNG {} {}".format(self.mycall, self.yourcall))
         self.pingingnow = True
         self.livepingtime = time.time()
+    def organizedtransmit(self, msg):
+        # this is a checkpoint for all transmissions to ensure that they are recorded and treated properly, it records messages so they can be resent
+        self.lastmsg = msg
+        self.connector.transmit(msg)
     def update(self):
         # this function recieves data and then processes it
         data = self.connector.recieve()
@@ -55,10 +60,10 @@ class HTPWorker():
                     # let's connect!
                     print("I'm {} Accepting a connection to {}".format(self.mycall, args[1]))
                     self.tryingtoconnect = True
-                    self.connector.transmit("CAC {} {}".format(self.mycall, self.yourcall))
+                    self.organizedtransmit("CAC {} {}".format(self.mycall, self.yourcall))
                 else:
                     print("I'm {}, and am rejecting a connection with {}".format(self.mycall, self.yourcall))
-                    self.connector.transmit("CRE {} {}".format(self.mycall, self.yourcall))
+                    self.organizedtransmit("CRE {} {}".format(self.mycall, self.yourcall))
 
             if prefix == "CAC" and self.tryingtoconnect and args[2] == self.mycall:
                 # the other station just accepted my request
@@ -69,7 +74,7 @@ class HTPWorker():
                 self.connected = True
                 self.accepting = False
 
-                self.connector.transmit("CMA {} {}".format(self.mycall, self.yourcall))
+                self.organizedtransmit("CMA {} {}".format(self.mycall, self.yourcall))
             if prefix == "CMA" and self.tryingtoconnect:
                 # we have now connected, so we should stop accepting other connections, and make note of the other changes
                 self.tryingtoconnect = False
@@ -80,12 +85,12 @@ class HTPWorker():
                 self.ping() # begin the pinging process
             if prefix == "PNG" and self.connected:
                 print("I'm {} recieving a ping, and responding".format(self.mycall))
-                self.connector.transmit("POG {} {}".format(self.mycall, self.yourcall))
+                self.organizedtransmit("POG {} {}".format(self.mycall, self.yourcall))
                 self.pingingnow = True
                 self.livepingtime = time.time()
             if prefix == "POG" and self.connected:
                 print("I'm {} recieving a POG, responding by ending the ping".format(self.mycall))
-                self.connector.transmit("EPG {} {}".format(self.mycall, self.yourcall))
+                self.organizedtransmit("EPG {} {}".format(self.mycall, self.yourcall))
                 self.pingingnow = False
                 now = time.time()
                 try:
