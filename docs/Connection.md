@@ -64,3 +64,12 @@ And the ping is ended with a
 ```
 EPG [Transmitting station's call sign] [Recieving station's call sign]
 ```
+
+# Ending Transmissions
+Talking with your fellow ham buddies is nice, but all good things have to come to an end, below is the methods through which transmissions are ended.
+
+```
+ETM [Transmitting station's call sign] [Recieving station's call sign]
+```
+
+This may need to be called if a transmission must end prematurely, such as with broken or weak connections. As a result, after this message should be sent 3 times, each a seccond apart. No communication should be made after this point by either station, and both may turn off their equipment. This protocol is expected to be used both for keyboard to keyboard communication, and for automatic signals where HTP is a small part of a much larger software. Because of this operators may need to give a formal goodbye, just "hanging up" might be considered rude.
