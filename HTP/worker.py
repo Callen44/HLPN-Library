@@ -56,6 +56,9 @@ class HTPWorker():
                     print("I'm {} Accepting a connection to {}".format(self.mycall, args[1]))
                     self.tryingtoconnect = True
                     self.connector.transmit("CAC {} {}".format(self.mycall, self.yourcall))
+                else:
+                    print("I'm {}, and am rejecting a connection with {}".format(self.mycall, self.yourcall))
+                    self.connector.transmit("CRE {} {}".format(self.mycall, self.yourcall))
 
             if prefix == "CAC" and self.tryingtoconnect and args[2] == self.mycall:
                 # the other station just accepted my request
@@ -101,3 +104,6 @@ class HTPWorker():
                 self.lastping = now
                 self.pingspeeds.append(self.pingspeednow)
                 print("Ping Speed: {}".format(self.pingspeednow))
+            if prefix == "CRE" and self.tryingtoconnect and self.connected == False: # this checks if the rejection signal was returned while connection and responds
+                self.tryingtoconnect = False
+                raise ConnectionRefusedError("The other station's system refused the connection, this is a fatal error and we cannot continue.")
