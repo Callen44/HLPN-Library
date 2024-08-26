@@ -1,6 +1,7 @@
 # this file contains the connector classes, and runs the HTP library, note that this is IRREGULAR, do not actually do this in production.
 # this script tests the htp program
 import worker
+import time
 
 # line variables store the communication, basically a simulated radio connection
 line = str()
@@ -9,7 +10,7 @@ lasttotransmit = None # we don't want a station to recieve it's own transmission
 class Connector():
     def __init__(self):
         pass
-    def transmit(self, msg):
+    def transmit(self, msg, tocall, fromcall): # transmit revieves fromcall and tocall, in case they are needed by the lower level protocol
         global line
         # clean out the line before transmitting, that way the stations don't need 2 lines
         line = None
@@ -35,7 +36,9 @@ if __name__ == "__main__":
     worker2 = worker.HTPWorker('TEST2', 'TEST1', connector2, pingdelay=3)
 
     worker1.initiate_connection()
-    # Debugging stuff
-    while True:
+    # stop the test after a set amount of time
+    timepertest = 10
+    timestart = time.time()
+    while (time.time() - timestart) < float(timepertest):
         worker2.update()
         worker1.update()

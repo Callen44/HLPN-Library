@@ -34,7 +34,9 @@ class HTPWorker():
     def organizedtransmit(self, msg):
         # this is a checkpoint for all transmissions to ensure that they are recorded and treated properly, it records messages so they can be resent
         self.lastmsg = msg
-        self.connector.transmit(msg)
+        self.connector.transmit(msg.upper(), fromcall=self.mycall.upper(), tocall=self.yourcall.upper())
+    def endcall(self):
+        self.organizedtransmit("ETM {} {}".format(self.mycall, self.yourcall))
     def update(self):
         # this function recieves data and then processes it
         data = self.connector.recieve()
