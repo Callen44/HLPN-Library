@@ -20,6 +20,7 @@ class HTPWorker():
         self.livepingtime = None # this stores the time that is used in calculating the ping speed
         self.lastping = int() # this stores the last time that a ping was successfully made, prevents from having too many pings.
         self.lastmsg = str() # this records the last message that was sent, this way if it needs to be resent there is an easy way to do so.
+        self.pinger = str() # this remembers who is supposed to ping, if It's not me then don't ping regularly
     def initiate_connection(self):
         self.tryingtoconnect = True
         self.organizedtransmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
@@ -37,12 +38,16 @@ class HTPWorker():
         self.connector.transmit(msg.upper(), fromcall=self.mycall.upper(), tocall=self.yourcall.upper())
     def endcall(self):
         self.organizedtransmit("ETM {} {}".format(self.mycall, self.yourcall))
-    def update(self):
+    def update(self): # to keep the code organized the maintain connection system and the data processing systems are split up.
+        self.maintain_con()
+    def check_data(self):
+        pass
+    def maintain_con(self):
         # this function recieves data and then processes it
         data = self.connector.recieve()
         
         # this part of the function runs scheduled tasks
-        if time.time() - self.lastping >= float(self.pingdelay) and self.lastping > 0: # when this function is run the first few times it is almost inevitable that lastping will be low
+        if time.time() - self.lastping >= float(self.pingdelay) and self.lastping > 0 and self.pinger == self.mycall: # when this function is run the first few times it is almost inevitable that lastping will be low
             self.ping()
 
         if data == None: # if nothing was recieved, then there is no sense in keeping this function running any longer
@@ -84,6 +89,7 @@ class HTPWorker():
                 self.accepting = False
                 print("I'm {}, I've just revieved CMA for a connection with {}\n\nCommencing my ({}'s) Pinging".format(self.mycall, self.yourcall, self.mycall))
 
+                self.pinger = self.mycall # this stores who is supposed to ping
                 self.ping() # begin the pinging process
             if prefix == "PNG" and self.connected:
                 print("I'm {} recieving a ping, and responding".format(self.mycall))
@@ -114,3 +120,6 @@ class HTPWorker():
             if prefix == "CRE" and self.tryingtoconnect and self.connected == False: # this checks if the rejection signal was returned while connection and responds
                 self.tryingtoconnect = False
                 raise ConnectionRefusedError("The other station's system refused the connection, this is a fatal error and we cannot continue.")
+            if prefix == "ETM":
+                print("I'm {}, The transmission has been ended".format(self.mycall))
+                self.connected = False

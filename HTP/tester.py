@@ -42,3 +42,6 @@ if __name__ == "__main__":
     while (time.time() - timestart) < float(timepertest):
         worker2.update()
         worker1.update()
+
+    worker1.endcall()
+    worker2.update()
