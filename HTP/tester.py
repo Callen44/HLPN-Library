@@ -26,7 +26,7 @@ class Connector():
         else:
             pass
     
-def basictest():
+def basictest(): # test connecting, pinging, and disconnecting
     connector1 = Connector()
     connector2 = Connector()
 
@@ -44,6 +44,9 @@ def basictest():
 
     worker1.endcall()
     worker2.update()
+
+def datatest(): # test connecting and sending data.
+    pass
 
 # if this file is run directly, then begin a full test
 if __name__ == "__main__":
