@@ -26,8 +26,7 @@ class Connector():
         else:
             pass
     
-# if this file is run directly, then begin a full test
-if __name__ == "__main__":
+def basictest():
     connector1 = Connector()
     connector2 = Connector()
 
@@ -45,3 +44,7 @@ if __name__ == "__main__":
 
     worker1.endcall()
     worker2.update()
+
+# if this file is run directly, then begin a full test
+if __name__ == "__main__":
+    basictest()
