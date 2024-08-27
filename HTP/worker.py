@@ -42,6 +42,8 @@ class HTPWorker():
         self.maintain_con()
     def check_data(self):
         pass
+    def request_retransmit(self):
+        self.organizedtransmit("RTM {} {}".format(self.mycall.upper(), self.yourcall.upper()))
     def maintain_con(self):
         # this function recieves data and then processes it
         data = self.connector.recieve()
@@ -123,3 +125,6 @@ class HTPWorker():
             if prefix == "ETM":
                 print("I'm {}, The transmission has been ended".format(self.mycall))
                 self.connected = False
+            if prefix == "RTM": #!!!!!!!!ATTENTION!!!!!!!!!! I need better implementing
+                print("I'm {} retransmitting upon request")
+                self.organizedtransmit(self.lastmsg)

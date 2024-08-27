@@ -73,3 +73,10 @@ ETM [Transmitting station's call sign] [Recieving station's call sign]
 ```
 
 This may need to be called if a transmission must end prematurely, such as with broken or weak connections. As a result, after this message should be sent 3 times, each a seccond apart. No communication should be made after this point by either station, and both may turn off their equipment. This protocol is expected to be used both for keyboard to keyboard communication, and for automatic signals where HTP is a small part of a much larger software. Because of this operators may need to give a formal goodbye, just "hanging up" might be considered rude.
+
+# Confirm sending
+if a message cannot be successfully sent, one station may transmit
+```
+RTM [Transmitting station's call sign] [Recieving station's call sign]
+```
+the last message will be resent exactly as it was sent the first time.
