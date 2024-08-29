@@ -55,7 +55,15 @@ def datatest(): # test connecting and sending data.
     worker1.initiate_connection()
     # run the test for a set amount of time before transmitting data
     timestart = time.time()
-    while (time.time() - timestart) < float(10):
+    while (time.time() - timestart) < float(5):
+        worker2.update()
+        worker1.update()
+    
+    worker1.transmitdata('10101010101010101010')
+
+    # begin running again
+    timestart = time.time()
+    while(time.time() - timestart) < float(3):
         worker2.update()
         worker1.update()
 
@@ -65,4 +73,6 @@ def datatest(): # test connecting and sending data.
 # if this file is run directly, then begin a full test
 if __name__ == "__main__":
     basictest()
+    print("\n\n\nBasic Test Done!")
     datatest()
+    print("\n\n\nData Test Done!")
