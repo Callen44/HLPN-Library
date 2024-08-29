@@ -1,5 +1,20 @@
 import time # used for measuring ping speed
 
+# set constants
+GOOD_ARGS = {
+    'CON',
+    'PNG',
+    'ETM',
+    'RTM',
+    'CAC',
+    'CMA',
+    'POG',
+    'EPG',
+    'CRE',
+    'ETM',
+    'RTM',
+}
+
 class HTPWorker():
     def __init__(self, mycall, yourcall, connector, accepting=True, pingdelay=30, timeout=60):
         # Load the main paramaters into variables
@@ -17,10 +32,12 @@ class HTPWorker():
         self.pingingnow = False
         self.pingspeednow = int()
         self.pingspeeds = list()
+        self.rtmtries = int() # used for remembering the number of times that a message was retransmitted, useful when timeouting
         self.livepingtime = None # this stores the time that is used in calculating the ping speed
         self.lastping = int() # this stores the last time that a ping was successfully made, prevents from having too many pings.
         self.lastmsg = str() # this records the last message that was sent, this way if it needs to be resent there is an easy way to do so.
         self.pinger = str() # this remembers who is supposed to ping, if It's not me then don't ping regularly
+        self.recieved = str() # stores the last received message for a while, this decreases stress on the TNC
     def initiate_connection(self):
         self.tryingtoconnect = True
         self.organizedtransmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
@@ -35,19 +52,41 @@ class HTPWorker():
     def organizedtransmit(self, msg):
         # this is a checkpoint for all transmissions to ensure that they are recorded and treated properly, it records messages so they can be resent
         self.lastmsg = msg
+        print("Transmitting: {}".format(msg))
         self.connector.transmit(msg.upper(), fromcall=self.mycall.upper(), tocall=self.yourcall.upper())
+    def organizedrecieve(self): # unlike organized transmit, this message is not ment to be called periodically, it is only used once each update
+        self.recieved = self.connector.recieve()
     def endcall(self):
         self.organizedtransmit("ETM {} {}".format(self.mycall, self.yourcall))
     def update(self): # to keep the code organized the maintain connection system and the data processing systems are split up.
+        self.organizedrecieve()
+        try:
+            self.check_data()
+        except SyntaxError:
+            if self.rtmtries < self.timeout and self.connected: # ensure the function will timeout, and that it will not continue if we aren't connected to the station
+                print("Data was illegable, requesting retransmit")
+                self.request_retransmit()
+            return
+        # if everything went well with recieving, move on
         self.maintain_con()
-    def check_data(self):
-        pass
+    def check_data(self): # this only runs a basic check, not a more advanced check with checksum
+        data = self.recieved
+        if data == None:
+            return
+        prefix = self.recieved[:3]
+        args = list(data)
+        if prefix in GOOD_ARGS: # check for legible prefix
+            pass
+        else:
+            raise SyntaxError("Recieved data is illegable") # !!!!!!!!!!! this needs to be replaced with a better error
+        if len(args[2]) < 6 and len(args[2]) > 4 and args[2] == self.yourcall: # good call sign
+            return True
     def request_retransmit(self):
         self.organizedtransmit("RTM {} {}".format(self.mycall.upper(), self.yourcall.upper()))
     def maintain_con(self):
         # this function recieves data and then processes it
-        data = self.connector.recieve()
-        
+        data = self.recieved
+
         # this part of the function runs scheduled tasks
         if time.time() - self.lastping >= float(self.pingdelay) and self.lastping > 0 and self.pinger == self.mycall: # when this function is run the first few times it is almost inevitable that lastping will be low
             self.ping()
@@ -56,7 +95,7 @@ class HTPWorker():
             return
 
         # this part of the function parses packets and responds to them
-        data = str(data).upper()
+        data = str(data).upper() # reformat data
         print("\nRecieved data: {}".format(data))
 
         # begin evaluating what the data is and what needs to be done
