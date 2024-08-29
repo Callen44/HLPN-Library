@@ -167,3 +167,11 @@ class HTPWorker():
             if prefix == "RTM": #!!!!!!!!ATTENTION!!!!!!!!!! I need better implementing
                 print("I'm {} retransmitting upon request")
                 self.organizedtransmit(self.lastmsg)
+            if prefix == "SDS": #this function cannot process data, so send it off for processing
+                self.processdata()
+    def processdata(self):
+        pass
+    def transmitdata(self,data):
+        hexdata = hex(int(data, base=2))
+        datalength = len(hexdata)
+        self.organizedtransmit("SDS {} {} {} {}".format(self.mycall, self.yourcall, hexdata, datalength))
