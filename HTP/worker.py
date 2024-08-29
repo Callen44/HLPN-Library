@@ -13,6 +13,7 @@ GOOD_ARGS = {
     'CRE',
     'ETM',
     'RTM',
+    'SDS',
 }
 
 class HTPWorker():
