@@ -36,9 +36,8 @@ def basictest(): # test connecting, pinging, and disconnecting
 
     worker1.initiate_connection()
     # stop the test after a set amount of time
-    timepertest = 10
     timestart = time.time()
-    while (time.time() - timestart) < float(timepertest):
+    while (time.time() - timestart) < float(10):
         worker2.update()
         worker1.update()
 
@@ -46,8 +45,24 @@ def basictest(): # test connecting, pinging, and disconnecting
     worker2.update()
 
 def datatest(): # test connecting and sending data.
-    pass
+    connector1 = Connector()
+    connector2 = Connector()
+
+    # the workers have the call signs, test1 and 2
+    worker1 = worker.HTPWorker('TEST1', 'TEST2', connector1, pingdelay=3)
+    worker2 = worker.HTPWorker('TEST2', 'TEST1', connector2, pingdelay=3)
+
+    worker1.initiate_connection()
+    # run the test for a set amount of time before transmitting data
+    timestart = time.time()
+    while (time.time() - timestart) < float(10):
+        worker2.update()
+        worker1.update()
+
+    worker1.endcall()
+    worker2.update()
 
 # if this file is run directly, then begin a full test
 if __name__ == "__main__":
     basictest()
+    datatest()
