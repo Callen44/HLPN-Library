@@ -171,7 +171,17 @@ class HTPWorker():
             if prefix == "SDS": #this function cannot process data, so send it off for processing
                 self.processdata()
     def processdata(self):
-        pass
+        fulldata = self.recieved
+        fulldatalist = fulldata.split()
+        print("incoming data!")
+        recieveddata = fulldatalist[3]
+        if len(recieveddata) == fulldatalist[4]: # check if the data is as long as it is supposed to be, this is very important for data error correction
+            pass
+        else:
+            print("Bad data recieved, requesting retransmit")
+            self.request_retransmit()
+            return
+        #
     def transmitdata(self,data):
         hexdata = hex(int(data, base=2))
         datalength = len(hexdata)
