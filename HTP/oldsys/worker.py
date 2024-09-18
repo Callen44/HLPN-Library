@@ -14,6 +14,8 @@ GOOD_ARGS = {
     'ETM',
     'RTM',
     'SDS',
+    'BLD',
+    'LDP',
 }
 
 class HTPWorker():
@@ -39,6 +41,11 @@ class HTPWorker():
         self.lastmsg = str() # this records the last message that was sent, this way if it needs to be resent there is an easy way to do so.
         self.pinger = str() # this remembers who is supposed to ping, if It's not me then don't ping regularly
         self.recieved = str() # stores the last received message for a while, this decreases stress on the TNC
+        self.longdatatransmission = {
+            'active': False,
+            'transmitting': False,
+            'lastid': None,
+        }
     def initiate_connection(self):
         self.tryingtoconnect = True
         self.organizedtransmit("CON {} {}".format(self.mycall.upper(), self.yourcall.upper()))
@@ -69,7 +76,8 @@ class HTPWorker():
                 self.request_retransmit()
             return
         # if everything went well with recieving, move on
-        self.maintain_con()
+        self.maintain_con() # maintain the connection
+        self.transmitlongportion() # this will check if a long data transmission is going on and respond accordingly
     def check_data(self): # this only runs a basic check, not a more advanced check with checksum
         data = self.recieved
         if data == None:
@@ -91,6 +99,8 @@ class HTPWorker():
         # this part of the function runs scheduled tasks
         if time.time() - self.lastping >= float(self.pingdelay) and self.lastping > 0 and self.pinger == self.mycall: # when this function is run the first few times it is almost inevitable that lastping will be low
             self.ping()
+
+        self.transmitlongportion()
 
         if data == None: # if nothing was recieved, then there is no sense in keeping this function running any longer
             return
@@ -169,8 +179,24 @@ class HTPWorker():
                 print("I'm {} retransmitting upon request".format(self.mycall))
                 self.organizedtransmit(self.lastmsg)
             if prefix == "SDS": #this function cannot process data, so send it off for processing
-                self.processdata()
-    def processdata(self):
+                self.processshortdata()
+            if prefix == "BLD":
+                self.beginlongdatarecieve() # processing data is really long, let's keep it out of the enormous function
+    def beginlongdatarecieve(self):
+        args = self.recieved.split()
+        self.longdatatransmission={
+            'active': True, # the long data stream is happening now
+            'transmitting': False, # I am not the one doing the transmitting
+            'recieverdata': { # this would be set to None if this station was not the one who was doing the transmitting
+                'fragments': [],
+                'id': args[3],
+            },
+            'lastid': args[3],
+        }
+        print(self.longdatatransmission)
+        
+        
+    def processshortdata(self):
         fulldata = self.recieved
         fulldatalist = fulldata.split()
         print("incoming data!")
@@ -185,7 +211,57 @@ class HTPWorker():
         # Extract the origional data and call a handler'
         origionaldata = bin(int(recieveddata, base=16))[2:].zfill(int(fulldatalist[4]))# convert to binary, using the number of digits in the error correction data
         print(origionaldata)
-    def transmitdata(self,data):
+    def transmitshortdata(self,data):
         hexdata = hex(int(data, base=2))
         datalength = len(hexdata)
         self.organizedtransmit("SDS {} {} {} {}".format(self.mycall, self.yourcall, hexdata, datalength))
+    def transmitlongdata(self, data):
+        hexdata = hex(int(data, base=2))
+
+        fragments = [hexdata[i:i+7] for i in range(0, len(hexdata), 7)]
+
+        if self.longdatatransmission['lastid'] != None:
+            id = self.longdatatransmission['lastid'] + 1 # calculate the new id for this transfer
+        else:
+            id = 1
+
+        self.longdatatransmission={
+            'active': True, # the long data stream is happening now
+            'transmitting': True, # I am the one doing the transmitting
+            'transmitter': { # this would be set to None if this station was not the one who was doing the transmitting
+                'fulldata': hexdata, # fulldata stores the entirety of the data that is to be transmitted
+                'fragments': fragments,
+                'fragmentsleft': fragments, # at first this starts out as equal to fragments
+                'id': id,
+            },
+            'lastid': id,
+        }
+        # start the stream
+        self.organizedtransmit('BLD {} {} {} {}'.format(self.mycall, self.yourcall, id, len(hexdata)))
+
+    def transmitlongportion(self):
+        # if it is time, transmit a fragment
+        if self.longdatatransmission['active'] and self.longdatatransmission['transmitting']:
+            # connection is active and we are the transmitter, extract the fragment that needs to be transmitted
+            transmitter = self.longdatatransmission['transmitter']
+            fragmentsleft = transmitter['fragmentsleft']
+            if fragmentsleft == []:
+                print("\n\n\n\n\n\n\nending\n\n\n\n\n\n\n\n")
+                self.endlong()
+            print(fragmentsleft)
+            fragemnttotransmit = fragmentsleft[0]
+            # reassemble the longdatatransmission variable and store it
+            del fragmentsleft[0]
+            transmitter['fragmentsleft'] = fragmentsleft
+            self.longdatatransmission['transmitter'] = transmitter
+            print(self.longdatatransmission)
+            print()
+            #self.organizedtransmit('LDP {} {} {} {} {}'.format(self.mycall,self.yourcall,transmitter['id'],(len(fragmentsleft)+1)-len(self.longdatatransmission['transmitter']['fragments']),))
+
+    def endlong(self):
+        self.longdatatransmission = {
+            'active': False,
+            'transmitting': False,
+            'lastid': None,
+        }
+        print('Done with long data transmit')

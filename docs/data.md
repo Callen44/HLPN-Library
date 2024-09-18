@@ -14,3 +14,25 @@ Short data streams are a basic way of transferring data, they look like this
 SDS [Transmitting station's call sign] [Recieving station's call sign] [Data in hexadecimal] [Number of digits in origional signal]
 ```
 To prevent any errors in the data, the number of digits in the hexadecimal message is also sent with the data, to provide basic error correction. Short data streams are short and don't support: advanced error correction or fragmentation/splitting data packets up.
+
+# Long Data Streams
+Long data streams are what are the most useful though, they are made up of several packets that are assembled into a larger piece of data.
+Each piece of a long data stream is sent as a seperate packet, there can be pings and other maintinence data sent in between the long data stream packets.
+Because it would be very difficult to implement, it is not reccommended for there to be 2 Long Data streams at once, though you may write software with this feature.
+A long data stream must be declared and the stream given an ID, that way it can be determined what packets go with the stream.
+Each packet of a long data stream, must bear the ID for its stream, and also have a tag for the order, so that they can be reassembled.
+The ID does not need to have anything special about it, it just needs to be uniquie, and an intiger.
+
+## Declaring a Long Data Stream
+Long data streams are declared like so, (BLD stands for Begin Long Data stream)
+After all of the hexadecimal fragments have been added together, the total number of digits must be equal to the last part of the BLD
+```
+BLD [Transmitting station's call sign] [Recieving station's call sign] [ID to be assigned] [The total number of hexadecimal digits]
+```
+
+## Transferring packets as in the stream
+Each packet in the stream needs it's own unique identifier, these identifiers must be assigned incrimentally according to the packet order
+Transferring data in these streams is done like so, (LDP stands for Long Data stream Part)
+```
+LDP [Transmitting station's call sign] [Recieving station's call sign] [Stream's ID] [Data in hexadecimal] [the Packet's Unique identifier]
+```

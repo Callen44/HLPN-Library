@@ -8,7 +8,7 @@
             "name": "Test HTP library",
             "type": "debugpy",
             "request": "launch",
-            "program": "HTP/tester.py",
+            "program": "HTP/oldsys/tester.py",
             "console": "integratedTerminal"
         }
     ]
