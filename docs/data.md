@@ -31,7 +31,7 @@ BLD [Transmitting station's call sign] [Recieving station's call sign] [ID to be
 ```
 
 ## Transferring packets as in the stream
-Each packet in the stream needs it's own unique identifier, these identifiers must be assigned incrimentally according to the packet order
+Each packet in the stream needs it's own unique identifier, these identifiers must be assigned incrimentally starting with 0 according to the packet order
 Transferring data in these streams is done like so, (LDP stands for Long Data stream Part)
 ```
 LDP [Transmitting station's call sign] [Recieving station's call sign] [Stream's ID] [Data in hexadecimal] [the Packet's Unique identifier]

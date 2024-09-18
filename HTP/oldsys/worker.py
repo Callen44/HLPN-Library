@@ -100,8 +100,6 @@ class HTPWorker():
         if time.time() - self.lastping >= float(self.pingdelay) and self.lastping > 0 and self.pinger == self.mycall: # when this function is run the first few times it is almost inevitable that lastping will be low
             self.ping()
 
-        self.transmitlongportion()
-
         if data == None: # if nothing was recieved, then there is no sense in keeping this function running any longer
             return
 
@@ -246,8 +244,8 @@ class HTPWorker():
             transmitter = self.longdatatransmission['transmitter']
             fragmentsleft = transmitter['fragmentsleft']
             if fragmentsleft == []:
-                print("\n\n\n\n\n\n\nending\n\n\n\n\n\n\n\n")
                 self.endlong()
+                return
             print(fragmentsleft)
             fragemnttotransmit = fragmentsleft[0]
             # reassemble the longdatatransmission variable and store it
@@ -256,7 +254,7 @@ class HTPWorker():
             self.longdatatransmission['transmitter'] = transmitter
             print(self.longdatatransmission)
             print()
-            #self.organizedtransmit('LDP {} {} {} {} {}'.format(self.mycall,self.yourcall,transmitter['id'],(len(fragmentsleft)+1)-len(self.longdatatransmission['transmitter']['fragments']),))
+            self.organizedtransmit('LDP {} {} {} {} {}'.format(self.mycall,self.yourcall,transmitter['id'],fragemnttotransmit,len(fragmentsleft)-len(self.longdatatransmission['transmitter']['fragments'])))
 
     def endlong(self):
         self.longdatatransmission = {
