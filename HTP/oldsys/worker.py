@@ -173,26 +173,40 @@ class HTPWorker():
             if prefix == "ETM":
                 print("I'm {}, The transmission has been ended".format(self.mycall))
                 self.connected = False
-            if prefix == "RTM": #!!!!!!!!ATTENTION!!!!!!!!!! I need better implementing
+            if prefix == "RTM": #!!!!!!!!ATTENTION!!!!!!!!!! I need better implementing, we don't want a retransmitting loop to be created by this
                 print("I'm {} retransmitting upon request".format(self.mycall))
                 self.organizedtransmit(self.lastmsg)
             if prefix == "SDS": #this function cannot process data, so send it off for processing
                 self.processshortdata()
             if prefix == "BLD":
                 self.beginlongdatarecieve() # processing data is really long, let's keep it out of the enormous function
+            if prefix == "LDP":
+                self.processlongportion()
+
+    def processlongportion(self):
+        fragments = self.longdatatransmission['recieverdata']['fragments']
+        rawdata = self.recieved.upper()
+        args = rawdata.split()
+        # with our variables, process the data
+        if args[3] != self.longdatatransmission["recieverdata"]["id"]:
+            return # !ATTENTION! this setup is temporary, we have it set so that we don't process parts for a different transmission, but it must be noted that when fully implimented we will be able to accept multiple Long Data Streams at once
+        fragments[int(args[5])] = args[4]
+        print(fragments)
+
     def beginlongdatarecieve(self):
         args = self.recieved.split()
+        fragments = ['' for i in range(0,int(args[4])+1)] # create a blank list that has blank strings for each packet, this way we can assign indexes
         self.longdatatransmission={
             'active': True, # the long data stream is happening now
             'transmitting': False, # I am not the one doing the transmitting
             'recieverdata': { # this would be set to None if this station was not the one who was doing the transmitting
-                'fragments': [],
+                'fragments': fragments,
                 'id': args[3],
+                'fragmentCount': args[4]
             },
             'lastid': args[3],
         }
         print(self.longdatatransmission)
-        
         
     def processshortdata(self):
         fulldata = self.recieved
@@ -209,10 +223,12 @@ class HTPWorker():
         # Extract the origional data and call a handler'
         origionaldata = bin(int(recieveddata, base=16))[2:].zfill(int(fulldatalist[4]))# convert to binary, using the number of digits in the error correction data
         print(origionaldata)
+
     def transmitshortdata(self,data):
         hexdata = hex(int(data, base=2))
         datalength = len(hexdata)
         self.organizedtransmit("SDS {} {} {} {}".format(self.mycall, self.yourcall, hexdata, datalength))
+
     def transmitlongdata(self, data):
         hexdata = hex(int(data, base=2))
 
@@ -228,14 +244,14 @@ class HTPWorker():
             'transmitting': True, # I am the one doing the transmitting
             'transmitter': { # this would be set to None if this station was not the one who was doing the transmitting
                 'fulldata': hexdata, # fulldata stores the entirety of the data that is to be transmitted
-                'fragments': fragments,
-                'fragmentsleft': fragments, # at first this starts out as equal to fragments
+                'fragments': [hexdata[i:i+7] for i in range(0, len(hexdata), 7)],
+                'fragmentsleft': [hexdata[i:i+7] for i in range(0, len(hexdata), 7)], # at first this starts out as equal to fragments
                 'id': id,
             },
             'lastid': id,
         }
         # start the stream
-        self.organizedtransmit('BLD {} {} {} {}'.format(self.mycall, self.yourcall, id, len(hexdata)))
+        self.organizedtransmit('BLD {} {} {} {}'.format(self.mycall, self.yourcall, id, len(fragments)))
 
     def transmitlongportion(self):
         # if it is time, transmit a fragment
@@ -247,14 +263,14 @@ class HTPWorker():
                 self.endlong()
                 return
             print(fragmentsleft)
-            fragemnttotransmit = fragmentsleft[0]
+            fragmenttotransmit = fragmentsleft[0]
             # reassemble the longdatatransmission variable and store it
             del fragmentsleft[0]
             transmitter['fragmentsleft'] = fragmentsleft
             self.longdatatransmission['transmitter'] = transmitter
             print(self.longdatatransmission)
             print()
-            self.organizedtransmit('LDP {} {} {} {} {}'.format(self.mycall,self.yourcall,transmitter['id'],fragemnttotransmit,len(fragmentsleft)-len(self.longdatatransmission['transmitter']['fragments'])))
+            self.organizedtransmit('LDP {} {} {} {} {}'.format(self.mycall,self.yourcall,transmitter['id'],fragmenttotransmit,self.longdatatransmission['transmitter']['fragments'].index(fragmenttotransmit)))
 
     def endlong(self):
         self.longdatatransmission = {

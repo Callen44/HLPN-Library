@@ -27,7 +27,7 @@ The ID does not need to have anything special about it, it just needs to be uniq
 Long data streams are declared like so, (BLD stands for Begin Long Data stream)
 After all of the hexadecimal fragments have been added together, the total number of digits must be equal to the last part of the BLD
 ```
-BLD [Transmitting station's call sign] [Recieving station's call sign] [ID to be assigned] [The total number of hexadecimal digits]
+BLD [Transmitting station's call sign] [Recieving station's call sign] [ID to be assigned] [The total number of packets to be transmitted]
 ```
 
 ## Transferring packets as in the stream

@@ -85,21 +85,21 @@ def longdatatest():
         worker2.update()
         worker1.update()
     
-    worker1.transmitlongdata('101010101010101010100000000000001111111111')
+    worker2.transmitlongdata('101010101010101010100000000000001111111111')
 
     # begin running again
     timestart = time.time()
-    while(time.time() - timestart) < float(3):
-        worker2.update()
+    while(time.time() - timestart) < float(300):
         worker1.update()
+        worker2.update()
 
     worker1.endcall()
     worker2.update()
 
 # if this file is run directly, then begin a full test
 if __name__ == "__main__":
-    basictest()
+    #basictest()
     print("\n\nBasic Test Done!")
-    datatest()
+    #datatest()
     print("\n\nData Test Done!")
     longdatatest()
