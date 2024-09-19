@@ -232,7 +232,7 @@ class HTPWorker():
     def transmitlongdata(self, data):
         hexdata = hex(int(data, base=2))
 
-        fragments = [hexdata[i:i+7] for i in range(0, len(hexdata), 7)]
+        fragments = [hexdata[i:i+7] for i in range(0, len(hexdata), 7)] # this variable is not used when setting the initial value of the self.longdatatransmission fix this !ATTENTION!
 
         if self.longdatatransmission['lastid'] != None:
             id = self.longdatatransmission['lastid'] + 1 # calculate the new id for this transfer
