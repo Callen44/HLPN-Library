@@ -36,3 +36,10 @@ Transferring data in these streams is done like so, (LDP stands for Long Data st
 ```
 LDP [Transmitting station's call sign] [Recieving station's call sign] [Stream's ID] [Data in hexadecimal] [the Packet's Unique identifier]
 ```
+
+## ending the stream
+All good things must come to an end, and the reciever must know that it has all of the packets eventually.
+To end a stream the device that is doing the transmitting must transmit LDE (Long Data End)
+```
+LDE [Transmitting stations's call sign] [Recieving station's call sign] [Stream's ID]
+```

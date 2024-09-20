@@ -16,6 +16,7 @@ GOOD_ARGS = {
     'SDS',
     'BLD',
     'LDP',
+    'LDE',
 }
 
 class HTPWorker():
@@ -182,6 +183,8 @@ class HTPWorker():
                 self.beginlongdatarecieve() # processing data is really long, let's keep it out of the enormous function
             if prefix == "LDP":
                 self.processlongportion()
+            if prefix == "LDE":
+                self.endlongrecieve()
 
     def processlongportion(self):
         fragments = self.longdatatransmission['recieverdata']['fragments']
@@ -191,8 +194,7 @@ class HTPWorker():
         if args[3] != self.longdatatransmission["recieverdata"]["id"]:
             return # !ATTENTION! this setup is temporary, we have it set so that we don't process parts for a different transmission, but it must be noted that when fully implimented we will be able to accept multiple Long Data Streams at once
         fragments[int(args[5])] = args[4]
-        print(fragments)
-
+        
     def beginlongdatarecieve(self):
         args = self.recieved.split()
         fragments = ['' for i in range(0,int(args[4]))] # create a blank list that has blank strings for each packet, this way we can assign indexes
@@ -206,7 +208,6 @@ class HTPWorker():
             },
             'lastid': args[3],
         }
-        print(self.longdatatransmission)
         
     def processshortdata(self):
         fulldata = self.recieved
@@ -220,9 +221,9 @@ class HTPWorker():
             print("Bad data recieved, requesting retransmit")
             self.request_retransmit()
             return
-        # Extract the origional data and call a handler'
+        # Extract the origional data and call a handler
         origionaldata = bin(int(recieveddata, base=16))[2:].zfill(int(fulldatalist[4]))# convert to binary, using the number of digits in the error correction data
-        print(origionaldata)
+        print(origionaldata) # !ATTENTION! data is no good to the user if it's stuck in the terminal
 
     def transmitshortdata(self,data):
         hexdata = hex(int(data, base=2))
@@ -260,22 +261,30 @@ class HTPWorker():
             transmitter = self.longdatatransmission['transmitter']
             fragmentsleft = transmitter['fragmentsleft']
             if fragmentsleft == []:
-                self.endlong()
+                self.endlongtransmission()
                 return
-            print(fragmentsleft)
             fragmenttotransmit = fragmentsleft[0]
             # reassemble the longdatatransmission variable and store it
             del fragmentsleft[0]
             transmitter['fragmentsleft'] = fragmentsleft
             self.longdatatransmission['transmitter'] = transmitter
-            print(self.longdatatransmission)
-            print()
             self.organizedtransmit('LDP {} {} {} {} {}'.format(self.mycall,self.yourcall,transmitter['id'],fragmenttotransmit,self.longdatatransmission['transmitter']['fragments'].index(fragmenttotransmit)))
 
-    def endlong(self):
+    def endlongtransmission(self):
+        self.organizedtransmit('LDE {} {} {}'.format(self.mycall, self.yourcall, self.longdatatransmission['transmitter']['id']))
+        # reset the system so that the next long data transmission can be sent
         self.longdatatransmission = {
             'active': False,
             'transmitting': False,
-            'lastid': None,
+            'lastid': self.longdatatransmission['lastid'],
         }
         print('Done with long data transmit')
+    
+    def endlongrecieve(self):
+        fragments = self.longdatatransmission['recieverdata']['fragments']
+        fullData = ""
+        for fragment in fragments:
+            fullData += fragment
+        fullData = int(fullData,16)
+        fullData = bin(fullData)
+        print(fullData)
