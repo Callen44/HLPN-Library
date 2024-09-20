@@ -195,7 +195,7 @@ class HTPWorker():
 
     def beginlongdatarecieve(self):
         args = self.recieved.split()
-        fragments = ['' for i in range(0,int(args[4])+1)] # create a blank list that has blank strings for each packet, this way we can assign indexes
+        fragments = ['' for i in range(0,int(args[4]))] # create a blank list that has blank strings for each packet, this way we can assign indexes
         self.longdatatransmission={
             'active': True, # the long data stream is happening now
             'transmitting': False, # I am not the one doing the transmitting
