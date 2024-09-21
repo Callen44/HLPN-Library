@@ -89,7 +89,7 @@ def longdatatest():
 
     # begin running again
     timestart = time.time()
-    while(time.time() - timestart) < float(300):
+    while(time.time() - timestart) < float(3):
         worker1.update()
         worker2.update()
 
@@ -98,8 +98,8 @@ def longdatatest():
 
 # if this file is run directly, then begin a full test
 if __name__ == "__main__":
-    #basictest()
+    basictest()
     print("\n\nBasic Test Done!")
-    #datatest()
+    datatest()
     print("\n\nData Test Done!")
     longdatatest()
