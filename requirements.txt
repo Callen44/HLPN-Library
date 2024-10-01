@@ -1,0 +1,8 @@
+attrs==24.2.0
+ax253==0.1.5.post1
+bitarray==2.9.2
+importlib_metadata==8.5.0
+kiss3==8.0.0
+pyserial==3.5
+pyserial-asyncio==0.6
+zipp==3.20.2

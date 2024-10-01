@@ -69,6 +69,7 @@ class HTPWorker():
         self.organizedtransmit("ETM {} {}".format(self.mycall, self.yourcall))
     def update(self): # to keep the code organized the maintain connection system and the data processing systems are split up.
         self.organizedrecieve()
+        self.connector.update() # this is a function that some connectors may need to update themselves
         try:
             self.check_data()
         except SyntaxError:
